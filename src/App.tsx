@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ToastContainer } from '@/components/Toast';
@@ -12,12 +12,12 @@ function App() {
   const [toasts, setToasts] = useState<Array<{ id: string; message: string; type: 'success' | 'error' | 'info' }>>([]);
   const { error, clearError } = useStore();
 
-  // Handle errors from store
-  if (error) {
+  useEffect(() => {
+    if (!error) return;
     const id = Date.now().toString();
     setToasts((prev) => [...prev, { id, message: error, type: 'error' }]);
     clearError();
-  }
+  }, [error, clearError]);
 
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));

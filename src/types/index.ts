@@ -14,6 +14,7 @@ export interface ToneAnalysis {
   primaryTone: ToneCategory;
   secondaryTones: ToneCategory[];
   confidence: number;
+  analysisSource?: 'audio' | 'metadata';
   tempo: TempoAnalysis;
   lyrics: LyricsAnalysis;
   emotions: EmotionBreakdown;

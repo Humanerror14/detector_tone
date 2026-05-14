@@ -212,6 +212,7 @@ def extract_audio_features(path: Path) -> dict[str, Any]:
         },
         "genre": genre,
         "mood": mood,
+        "analysisSource": "audio",
     }
 
 
@@ -245,7 +246,7 @@ def classify_mood_placeholder(bpm: float, energy: float, key: str) -> str:
     return "nostalgic" if is_minor else "calm"
 
 
-def fallback_features(seed_text: str) -> dict[str, Any]:
+def fallback_features(seed_text: str, audio_based: bool = False) -> dict[str, Any]:
     seed = sum(ord(char) for char in seed_text)
     bpm = 70 + seed % 90
     energy = 35 + seed % 55
@@ -256,20 +257,29 @@ def fallback_features(seed_text: str) -> dict[str, Any]:
             "tempoCategory": tempo_category(bpm),
             "rhythmPattern": "Fast-paced" if bpm >= 120 else "Moderate groove" if bpm >= 90 else "Slow and steady",
             "energyLevel": energy,
-            "consistency": 75,
+            "consistency": 75 if audio_based else 45,
         },
         "musicalCharacteristics": {
-            "key": "C Major",
-            "mode": "major",
-            "timeSignature": "4/4",
-            "loudness": -8,
+            "key": "C Major" if audio_based else None,
+            "mode": "major" if audio_based else None,
+            "timeSignature": "4/4" if audio_based else None,
+            "loudness": -8 if audio_based else None,
             "acousticness": 0.4,
             "instrumentalness": 0.1,
             "danceability": round(min(1, bpm / 160 * energy / 100), 2),
         },
         "genre": "unknown",
         "mood": mood,
+        "analysisSource": "audio" if audio_based else "metadata",
     }
+
+
+def analysis_confidence(features: dict[str, Any], sentiment: dict[str, Any]) -> float:
+    if features.get("analysisSource") == "audio":
+        return round(min(0.92, max(0.68, 0.65 + features["tempo"]["consistency"] / 350)), 2)
+    text_bonus = 0.08 if sentiment["language"] != "unknown" else 0
+    sentiment_bonus = min(0.08, abs(float(sentiment["sentimentScore"])) * 0.08)
+    return round(0.42 + text_bonus + sentiment_bonus, 2)
 
 
 def build_response(song: dict[str, Any], features: dict[str, Any], sentiment: dict[str, Any]) -> dict[str, Any]:
@@ -292,7 +302,8 @@ def build_response(song: dict[str, Any], features: dict[str, Any], sentiment: di
         "analysis": {
             "primaryTone": primary_tone,
             "secondaryTones": ["calm-peaceful", "nostalgic-reflective"] if primary_tone != "calm-peaceful" else ["nostalgic-reflective", "romantic-emotional"],
-            "confidence": 0.78,
+            "confidence": analysis_confidence(features, sentiment),
+            "analysisSource": features.get("analysisSource", "audio"),
             "tempo": features["tempo"],
             "lyrics": sentiment,
             "emotions": emotions,
@@ -308,14 +319,17 @@ def download_youtube_audio(url: str, target_dir: Path) -> Path:
 
     output_template = str(target_dir / "youtube_audio.%(ext)s")
     options = {
-        "format": "bestaudio/best",
+        "format": "bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best",
         "outtmpl": output_template,
         "quiet": True,
         "noplaylist": True,
         "postprocessors": [{"key": "FFmpegExtractAudio", "preferredcodec": "wav"}],
     }
-    with yt_dlp.YoutubeDL(options) as downloader:
-        downloader.download([url])
+    try:
+        with yt_dlp.YoutubeDL(options) as downloader:
+            downloader.download([url])
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"YouTube download failed: {exc}") from exc
 
     output_path = target_dir / "youtube_audio.wav"
     if not output_path.exists():
@@ -344,11 +358,9 @@ def analyze_youtube(payload: YouTubeAnalyzeRequest) -> dict[str, Any]:
     if not song.get("url"):
         raise HTTPException(status_code=400, detail="YouTube URL is required")
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        audio_path = download_youtube_audio(str(song["url"]), Path(temp_dir))
-        features = extract_audio_features(audio_path)
-
-    sentiment = analyze_sentiment(f'{song.get("title", "")} {song.get("artist", "")}')
+    analysis_text = clean_analysis_text(f'{song.get("title", "")} {song.get("artist", "")}')
+    features = fallback_features(analysis_text or song.get("id", "youtube"), audio_based=False)
+    sentiment = analyze_sentiment(analysis_text)
     return build_response(song, features, sentiment)
 
 

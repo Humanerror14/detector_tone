@@ -9,6 +9,14 @@ import { FaMusic, FaArrowLeft, FaShare, FaDownload, FaBolt, FaGlobe, FaHeartbeat
 import { getToneLabel, getToneColor, getToneDescription } from '@/utils/toneClassifier';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, RadialBarChart, RadialBar, PolarRadiusAxis } from 'recharts';
 
+const getYouTubeEmbedUrl = (url?: string) => {
+  if (!url) return null;
+
+  const match = url.match(/[?&]v=([^&]+)/) ?? url.match(/youtu\.be\/([^?&]+)/);
+  const videoId = match?.[1];
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+};
+
 export const ResultsPage = () => {
   const navigate = useNavigate();
   const { analysisResult, isAnalyzing } = useStore();
@@ -48,6 +56,7 @@ export const ResultsPage = () => {
   }
 
   const { song, analysis, similarSongs } = analysisResult;
+  const youtubeEmbedUrl = getYouTubeEmbedUrl(song.url);
 
   // Prepare emotion data for radar chart
   const emotionData = Object.entries(analysis.emotions).map(([emotion, value]) => ({
@@ -92,13 +101,21 @@ export const ResultsPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <button
-            onClick={() => navigate('/')}
-            className="text-gray-400 hover:text-white transition-colors mb-4 flex items-center gap-2"
-          >
-            <FaArrowLeft />
-            Analyze Another Song
-          </button>
+          <div className="flex items-center gap-3 mb-4 flex-wrap">
+            <button
+              onClick={() => navigate('/analyze/search')}
+              className="text-gray-300 hover:text-white transition-colors flex items-center gap-2"
+            >
+              <FaArrowLeft />
+              Search Another Song
+            </button>
+            <button
+              onClick={() => navigate('/analyze/upload')}
+              className="text-gray-500 hover:text-gray-300 transition-colors text-sm"
+            >
+              or upload new audio
+            </button>
+          </div>
         </motion.div>
 
         {/* Song Info */}
@@ -135,6 +152,17 @@ export const ResultsPage = () => {
                     <audio controls className="w-full" src={song.previewUrl}>
                       Your browser does not support audio playback.
                     </audio>
+                  </div>
+                )}
+                {youtubeEmbedUrl && (
+                  <div className="mt-4 max-w-xl overflow-hidden rounded-xl border border-white/10">
+                    <iframe
+                      className="aspect-video w-full"
+                      src={youtubeEmbedUrl}
+                      title={`${song.title} YouTube player`}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
                   </div>
                 )}
               </div>
@@ -186,8 +214,11 @@ export const ResultsPage = () => {
               <h2 className="text-3xl font-bold mb-2">
                 Primary Tone: <span style={{ color: primaryColor }}>{getToneLabel(analysis.primaryTone)}</span>
               </h2>
-              <p className="text-gray-400 max-w-2xl mx-auto mb-4">
+              <p className="text-gray-400 max-w-2xl mx-auto mb-2">
                 {getToneDescription(analysis.primaryTone)}
+              </p>
+              <p className="text-sm text-gray-500 mb-4">
+                Source: {analysis.analysisSource === 'metadata' ? 'Metadata estimate (title/artist)' : 'Audio-based analysis'}
               </p>
 
               <div className="flex items-center justify-center gap-4 flex-wrap">
@@ -424,15 +455,15 @@ export const ResultsPage = () => {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Key:</span>
-                  <span className="font-semibold">{analysis.musicalCharacteristics.key}</span>
+                  <span className="font-semibold">{analysis.musicalCharacteristics.key || 'Not available'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Mode:</span>
-                  <span className="font-semibold capitalize">{analysis.musicalCharacteristics.mode}</span>
+                  <span className="font-semibold capitalize">{analysis.musicalCharacteristics.mode || 'Not available'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Time Signature:</span>
-                  <span className="font-semibold">{analysis.musicalCharacteristics.timeSignature}</span>
+                  <span className="font-semibold">{analysis.musicalCharacteristics.timeSignature || 'Not available'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Danceability:</span>
