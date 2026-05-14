@@ -1,0 +1,13 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+pydantic==2.10.4
+numpy>=2.1.0
+librosa>=0.10.2.post1
+yt-dlp>=2025.1.15
+transformers>=4.47.1
+torch>=2.6.0
+langdetect>=1.0.9
+# Essentia wheels can be platform-specific and may not support Python 3.13 on Windows.
+# Install manually if a compatible wheel is available.
+# essentia==2.1b6.dev1110
