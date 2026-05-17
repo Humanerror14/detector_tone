@@ -98,7 +98,7 @@ export class LyricsAnalyzer {
     return emotions;
   }
 
-  private extractKeywords(doc: any): string[] {
+  private extractKeywords(doc: { nouns(): { out(format: 'array'): string[] }; verbs(): { out(format: 'array'): string[] }; adjectives(): { out(format: 'array'): string[] } }): string[] {
     const nouns = doc.nouns().out('array');
     const verbs = doc.verbs().out('array');
     const adjectives = doc.adjectives().out('array');

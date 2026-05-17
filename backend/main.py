@@ -3,9 +3,12 @@ from __future__ import annotations
 import math
 import os
 import re
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -37,6 +40,11 @@ try:
     import yt_dlp
 except Exception:  # pragma: no cover
     yt_dlp = None
+
+try:
+    from youtube_transcript_api import YouTubeTranscriptApi
+except Exception:  # pragma: no cover
+    YouTubeTranscriptApi = None
 
 app = FastAPI(title="Tone Music AI Backend")
 app.add_middleware(
@@ -141,10 +149,11 @@ def detect_language(text: str) -> str:
         return "unknown"
 
 
-def analyze_sentiment(text: str) -> dict[str, Any]:
+def analyze_sentiment(text: str, *, has_lyrics: bool | None = None) -> dict[str, Any]:
     global _sentiment_pipeline
     language = detect_language(text)
     has_text = bool(text.strip())
+    resolved_has_lyrics = has_text if has_lyrics is None else bool(has_lyrics)
 
     if pipeline is not None and has_text:
         try:
@@ -162,7 +171,7 @@ def analyze_sentiment(text: str) -> dict[str, Any]:
                 "keywords": [],
                 "themes": [],
                 "language": language,
-                "hasLyrics": has_text,
+                "hasLyrics": resolved_has_lyrics,
             }
         except Exception:
             pass
@@ -174,8 +183,159 @@ def analyze_sentiment(text: str) -> dict[str, Any]:
         "keywords": [],
         "themes": [],
         "language": language,
-        "hasLyrics": has_text,
+        "hasLyrics": resolved_has_lyrics,
     }
+
+
+def is_youtube_video_id(value: str) -> bool:
+    return bool(re.fullmatch(r"[0-9A-Za-z_-]{11}", value))
+
+
+def extract_youtube_video_id(song: dict[str, Any]) -> str | None:
+    song_id = str(song.get("id") or "").strip()
+    if is_youtube_video_id(song_id):
+        return song_id
+
+    url = str(song.get("url") or "").strip()
+    if not url:
+        return None
+
+    try:
+        parsed = urlparse(url)
+        if parsed.netloc.endswith("youtu.be"):
+            candidate = parsed.path.strip("/").split("/")[0]
+            return candidate if is_youtube_video_id(candidate) else None
+
+        if "youtube.com" in parsed.netloc:
+            if parsed.path.startswith("/shorts/") or parsed.path.startswith("/embed/"):
+                candidate = parsed.path.strip("/").split("/")[-1]
+                return candidate if is_youtube_video_id(candidate) else None
+            qs = parse_qs(parsed.query)
+            candidate = (qs.get("v") or [""])[0]
+            return candidate if is_youtube_video_id(candidate) else None
+    except Exception:
+        return None
+
+    return None
+
+
+def vtt_to_text(vtt: str) -> str:
+    lines: list[str] = []
+    for raw in vtt.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if line.startswith("WEBVTT"):
+            continue
+        if "-->" in line:
+            continue
+        if re.fullmatch(r"\d+", line):
+            continue
+        line = re.sub(r"<[^>]+>", "", line)
+        line = re.sub(r"\s+", " ", line).strip()
+        if line:
+            lines.append(line)
+
+    text = " ".join(lines)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def fetch_youtube_lyrics_result(video_id: str, lang_priority: list[str]) -> dict[str, Any]:
+    result: dict[str, Any] = {
+        "text": None,
+        "error": None,
+        "returnCode": None,
+        "requestedLanguages": lang_priority,
+        "subtitleFiles": [],
+        "source": None,
+    }
+
+    if YouTubeTranscriptApi is not None:
+        try:
+            transcript = YouTubeTranscriptApi().fetch(video_id, languages=lang_priority)
+            transcript_text = " ".join(getattr(snippet, "text", "") for snippet in transcript)
+            transcript_text = re.sub(r"\s+", " ", transcript_text).strip()
+            if transcript_text:
+                result["text"] = transcript_text
+                result["source"] = "youtube-transcript-api"
+                return result
+            result["transcriptApiError"] = "Transcript API returned empty text"
+        except Exception as exc:
+            result["transcriptApiError"] = str(exc)
+    else:
+        result["transcriptApiError"] = "youtube-transcript-api is not installed"
+
+    if yt_dlp is None:
+        result["error"] = "yt-dlp is not installed"
+        return result
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        output_template = str(Path(temp_dir) / "%(id)s.%(ext)s")
+        args = [
+            sys.executable,
+            "-m",
+            "yt_dlp",
+            "--skip-download",
+            "--write-subs",
+            "--write-auto-subs",
+            "--sub-format",
+            "vtt",
+            "--sub-langs",
+            ",".join(lang_priority),
+            "--js-runtimes",
+            f"deno:{os.getenv('YTDLP_DENO_PATH','C:/Users/ASUS/AppData/Local/Microsoft/WinGet/Packages/DenoLand.Deno_Microsoft.Winget.Source_8wekyb3d8bbwe/deno.exe')}",
+            "-o",
+            output_template,
+            f"https://www.youtube.com/watch?v={video_id}",
+        ]
+
+        try:
+            process = subprocess.run(args, check=False, capture_output=True, text=True, timeout=120)
+        except Exception as exc:
+            result["error"] = str(exc)
+            return result
+
+        result["returnCode"] = process.returncode
+        result["stdoutTail"] = process.stdout[-1000:]
+        result["stderrTail"] = process.stderr[-1000:]
+
+        vtt_files = list(Path(temp_dir).glob(f"{video_id}*.vtt"))
+        result["subtitleFiles"] = [path.name for path in vtt_files]
+        if not vtt_files:
+            if not result["error"]:
+                result["error"] = "No subtitle files were downloaded"
+            return result
+
+        def score(path: Path) -> tuple[int, int]:
+            name = path.name.lower()
+            is_auto = 1 if "auto" in name or "asr" in name else 0
+            lang_rank = len(lang_priority)
+            for idx, lang in enumerate(lang_priority):
+                if f".{lang.lower()}" in name:
+                    lang_rank = idx
+                    break
+            return (is_auto, lang_rank)
+
+        selected = sorted(vtt_files, key=score)[0]
+        result["selectedSubtitle"] = selected.name
+        try:
+            content = selected.read_text(encoding="utf-8", errors="replace")
+        except Exception as exc:
+            result["error"] = str(exc)
+            return result
+
+        text = vtt_to_text(content)
+        if not text:
+            result["error"] = "Subtitle file was empty after parsing"
+            return result
+
+        result["text"] = text
+        result["source"] = "yt-dlp"
+        return result
+
+
+def fetch_youtube_lyrics(video_id: str, lang_priority: list[str]) -> str | None:
+    return fetch_youtube_lyrics_result(video_id, lang_priority).get("text")
 
 
 def extract_audio_features(path: Path) -> dict[str, Any]:
@@ -355,13 +515,48 @@ def health() -> dict[str, bool]:
 @app.post("/analyze/youtube")
 def analyze_youtube(payload: YouTubeAnalyzeRequest) -> dict[str, Any]:
     song = payload.song.model_dump(mode="json")
-    if not song.get("url"):
-        raise HTTPException(status_code=400, detail="YouTube URL is required")
+
+    video_id = extract_youtube_video_id(song)
+    if not video_id:
+        raise HTTPException(status_code=400, detail="Valid YouTube video id/url is required")
+
+    lang_priority = [lang.strip() for lang in os.getenv("YOUTUBE_LYRICS_LANGS", "id,en").split(",") if lang.strip()]
+    lyrics_text = fetch_youtube_lyrics(video_id, lang_priority)
 
     analysis_text = clean_analysis_text(f'{song.get("title", "")} {song.get("artist", "")}')
-    features = fallback_features(analysis_text or song.get("id", "youtube"), audio_based=False)
-    sentiment = analyze_sentiment(analysis_text)
+    sentiment_text = lyrics_text or analysis_text
+
+    features = fallback_features(analysis_text or video_id, audio_based=False)
+    sentiment = analyze_sentiment(sentiment_text, has_lyrics=bool(lyrics_text))
     return build_response(song, features, sentiment)
+
+
+@app.post("/debug/youtube-lyrics")
+def debug_youtube_lyrics(payload: YouTubeAnalyzeRequest) -> dict[str, Any]:
+    song = payload.song.model_dump(mode="json")
+    video_id = extract_youtube_video_id(song)
+    if not video_id:
+        raise HTTPException(status_code=400, detail="Valid YouTube video id/url is required")
+
+    lang_priority = [lang.strip() for lang in os.getenv("YOUTUBE_LYRICS_LANGS", "id,en").split(",") if lang.strip()]
+    lyrics_result = fetch_youtube_lyrics_result(video_id, lang_priority)
+    lyrics_text = lyrics_result.get("text") or ""
+
+    return {
+        "videoId": video_id,
+        "hasLyrics": bool(lyrics_text),
+        "lyricsPreview": lyrics_text[:240],
+        "language": detect_language(lyrics_text),
+        "chars": len(lyrics_text),
+        "requestedLanguages": lyrics_result.get("requestedLanguages", []),
+        "subtitleFiles": lyrics_result.get("subtitleFiles", []),
+        "selectedSubtitle": lyrics_result.get("selectedSubtitle"),
+        "ytDlpReturnCode": lyrics_result.get("returnCode"),
+        "source": lyrics_result.get("source"),
+        "transcriptApiError": lyrics_result.get("transcriptApiError"),
+        "error": lyrics_result.get("error"),
+        "stderrTail": lyrics_result.get("stderrTail"),
+    }
 
 
 @app.post("/analyze/upload")
@@ -378,5 +573,5 @@ async def analyze_upload(file: UploadFile = File(...)) -> dict[str, Any]:
 
     title = clean_analysis_text(Path(file.filename or "Uploaded Song").stem) or "Uploaded Song"
     song = {"id": f"upload-{title}", "title": title, "artist": "Unknown Artist", "platform": "upload"}
-    sentiment = analyze_sentiment(title)
+    sentiment = analyze_sentiment(title, has_lyrics=False)
     return build_response(song, features, sentiment)

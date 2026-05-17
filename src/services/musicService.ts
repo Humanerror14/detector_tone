@@ -54,9 +54,6 @@ export class MusicService {
     }
   }
 
-  async getLyrics(_song: Song): Promise<string> {
-    return '';
-  }
 
   private normalizeTitle(title: string): string {
     return title

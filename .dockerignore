@@ -1,0 +1,9 @@
+node_modules
+backend/__pycache__
+__pycache__
+dist
+.git
+.claude
+*.log
+*.pyc
+payload.json

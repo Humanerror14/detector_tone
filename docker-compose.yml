@@ -1,0 +1,20 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - YOUTUBE_LYRICS_LANGS=${YOUTUBE_LYRICS_LANGS:-id,en}
+      - YTDLP_DENO_PATH=${YTDLP_DENO_PATH:-}
+
+  frontend:
+    build:
+      context: .
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_ANALYSIS_API_URL=http://localhost:8000
+      - VITE_YOUTUBE_API_KEY=${VITE_YOUTUBE_API_KEY:-}
+    depends_on:
+      - backend

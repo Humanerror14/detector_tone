@@ -31,3 +31,10 @@ dist-ssr
 # Uploaded files
 uploads/
 temp/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Local debug payloads
+payload.json

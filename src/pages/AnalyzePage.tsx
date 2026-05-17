@@ -6,6 +6,7 @@ import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { AnimatedBackground } from '@/components/AnimatedBackground';
+import { Song } from '@/types';
 import { useStore } from '@/store/useStore';
 import { musicService } from '@/services/musicService';
 import { analysisService } from '@/services/analysisService';
@@ -17,7 +18,7 @@ export const AnalyzePage = () => {
 
   const [titleInput, setTitleInput] = useState('');
   const [artistInput, setArtistInput] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<Song[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -38,7 +39,7 @@ export const AnalyzePage = () => {
     }
   };
 
-  const handleSongSelect = async (song: any) => {
+  const handleSongSelect = async (song: Song) => {
     try {
       setIsAnalyzing(true);
       setCurrentSong(song);

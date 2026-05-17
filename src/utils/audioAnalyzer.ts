@@ -1,11 +1,19 @@
 import { TempoAnalysis } from '@/types';
 
+type WindowWithWebkitAudioContext = Window & typeof globalThis & {
+  webkitAudioContext?: typeof AudioContext;
+};
+
 export class AudioAnalyzer {
   private audioContext: AudioContext | null = null;
 
   constructor() {
     if (typeof window !== 'undefined') {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioWindow = window as WindowWithWebkitAudioContext;
+      const AudioContextConstructor = audioWindow.AudioContext || audioWindow.webkitAudioContext;
+      if (AudioContextConstructor) {
+        this.audioContext = new AudioContextConstructor();
+      }
     }
   }
 
