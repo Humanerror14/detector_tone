@@ -120,8 +120,13 @@ Useful runtime settings:
 ```env
 VITE_ANALYSIS_API_URL=http://localhost:8000
 YOUTUBE_LYRICS_LANGS=id,en
+ALLOWED_ORIGINS=http://localhost:5173
+MAX_UPLOAD_BYTES=10485760
+ENABLE_DEBUG_ENDPOINTS=false
 YTDLP_DENO_PATH=
 ```
+
+For production, set `ALLOWED_ORIGINS` to your deployed frontend origin and keep `ENABLE_DEBUG_ENDPOINTS=false`.
 
 ## How It Works
 

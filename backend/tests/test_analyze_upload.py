@@ -42,3 +42,22 @@ def test_analyze_upload_success_shape(monkeypatch) -> None:
     payload = resp.json()
     assert "analysis" in payload
     assert "tempo" in payload["analysis"]
+
+
+def test_analyze_upload_rejects_oversized_file(monkeypatch) -> None:
+    monkeypatch.setattr(main, "MAX_UPLOAD_BYTES", 4)
+    client = TestClient(main.app)
+    resp = client.post(
+        "/analyze/upload",
+        files={"file": ("sample.mp3", BytesIO(b"12345"), "audio/mpeg")},
+    )
+    assert resp.status_code == 413
+
+
+def test_analyze_upload_rejects_unsupported_content_type() -> None:
+    client = TestClient(main.app)
+    resp = client.post(
+        "/analyze/upload",
+        files={"file": ("sample.txt", BytesIO(b"dummy"), "text/plain")},
+    )
+    assert resp.status_code == 400

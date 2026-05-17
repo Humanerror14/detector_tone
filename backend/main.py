@@ -46,13 +46,26 @@ try:
 except Exception:  # pragma: no cover
     YouTubeTranscriptApi = None
 
+def env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",") if origin.strip()]
+MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))
+ALLOWED_AUDIO_TYPES = {"audio/mpeg", "audio/wav", "audio/x-wav", "audio/mp4", "audio/m4a"}
+ALLOWED_AUDIO_SUFFIXES = {".mp3", ".wav", ".m4a", ".mp4"}
+DEBUG_ENDPOINTS_ENABLED = env_bool("ENABLE_DEBUG_ENDPOINTS")
+
 app = FastAPI(title="Tone Music AI Backend")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
 _sentiment_pipeline = None
@@ -533,6 +546,9 @@ def analyze_youtube(payload: YouTubeAnalyzeRequest) -> dict[str, Any]:
 
 @app.post("/debug/youtube-lyrics")
 def debug_youtube_lyrics(payload: YouTubeAnalyzeRequest) -> dict[str, Any]:
+    if not DEBUG_ENDPOINTS_ENABLED:
+        raise HTTPException(status_code=404, detail="Not found")
+
     song = payload.song.model_dump(mode="json")
     video_id = extract_youtube_video_id(song)
     if not video_id:
@@ -561,9 +577,18 @@ def debug_youtube_lyrics(payload: YouTubeAnalyzeRequest) -> dict[str, Any]:
 
 @app.post("/analyze/upload")
 async def analyze_upload(file: UploadFile = File(...)) -> dict[str, Any]:
-    suffix = Path(file.filename or "upload.mp3").suffix or ".mp3"
+    suffix = Path(file.filename or "upload.mp3").suffix.lower() or ".mp3"
+    if suffix not in ALLOWED_AUDIO_SUFFIXES:
+        raise HTTPException(status_code=400, detail="Unsupported audio file extension")
+    if file.content_type and file.content_type not in ALLOWED_AUDIO_TYPES:
+        raise HTTPException(status_code=400, detail="Unsupported audio content type")
+
+    content = await file.read(MAX_UPLOAD_BYTES + 1)
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="Uploaded file is too large")
+
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
-        temp_file.write(await file.read())
+        temp_file.write(content)
         temp_path = Path(temp_file.name)
 
     try:
