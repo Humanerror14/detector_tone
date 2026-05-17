@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import { FaHeart, FaTwitter, FaInstagram, FaYoutube } from 'react-icons/fa';
+import { motion } from "framer-motion";
+import { FaHeart, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
 
 export const Footer = () => {
   return (
@@ -8,9 +8,12 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* About */}
           <div>
-            <h3 className="text-lg font-bold mb-4 text-gradient">Tone Music Analyzer</h3>
+            <h3 className="text-lg font-bold mb-4 text-gradient">
+              Tone Music Analyzer
+            </h3>
             <p className="text-gray-400 text-sm">
-              Discover the emotional tone of your favorite songs through advanced audio and lyrics analysis.
+              Discover the emotional tone of your favorite songs through
+              advanced audio and lyrics analysis.
             </p>
           </div>
 
@@ -19,22 +22,34 @@ export const Footer = () => {
             <h3 className="text-lg font-bold mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm text-gray-400">
               <li>
-                <a href="#" className="hover:text-primary-purple transition-colors">
+                <a
+                  href="#"
+                  className="hover:text-primary-purple transition-colors"
+                >
                   How It Works
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-primary-purple transition-colors">
+                <a
+                  href="#"
+                  className="hover:text-primary-purple transition-colors"
+                >
                   About Us
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-primary-purple transition-colors">
+                <a
+                  href="#"
+                  className="hover:text-primary-purple transition-colors"
+                >
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-primary-purple transition-colors">
+                <a
+                  href="#"
+                  className="hover:text-primary-purple transition-colors"
+                >
                   Terms of Service
                 </a>
               </li>
@@ -46,9 +61,18 @@ export const Footer = () => {
             <h3 className="text-lg font-bold mb-4">Connect With Us</h3>
             <div className="flex gap-4">
               {[
-                { icon: FaTwitter, href: '#' },
-                { icon: FaInstagram, href: '#' },
-                { icon: FaYoutube, href: '#' },
+                {
+                  icon: FaTwitter,
+                  href: "https://www.threads.com/@ulil_amry14",
+                },
+                {
+                  icon: FaInstagram,
+                  href: "https://www.instagram.com/ulil_amry14/",
+                },
+                {
+                  icon: FaLinkedin,
+                  href: "linkedin.com/in/ulil-amri-2818a5268",
+                },
               ].map((social, index) => (
                 <motion.a
                   key={index}
@@ -66,7 +90,8 @@ export const Footer = () => {
 
         <div className="mt-8 pt-8 border-t border-white/10 text-center text-sm text-gray-400">
           <p className="flex items-center justify-center gap-2">
-            Made with <FaHeart className="text-primary-pink" /> by Tone Music Team © 2026
+            Made with <FaHeart className="text-primary-pink" /> by Tone Music
+            Team © 2026
           </p>
         </div>
       </div>

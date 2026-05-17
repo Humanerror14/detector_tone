@@ -1,6 +1,6 @@
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { FaMusic, FaGithub } from 'react-icons/fa';
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { FaMusic, FaGithub } from "react-icons/fa";
 
 export const Navbar = () => {
   return (
@@ -21,13 +21,15 @@ export const Navbar = () => {
             </motion.div>
             <div>
               <h1 className="text-2xl font-bold text-gradient">Tone Music</h1>
-              <p className="text-xs text-gray-400">Discover Your Music's Mood</p>
+              <p className="text-xs text-gray-400">
+                Discover Your Music's Mood
+              </p>
             </div>
           </Link>
 
           <div className="flex items-center gap-4">
             <motion.a
-              href="https://github.com"
+              href="https://github.com/Humanerror14"
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.1 }}
