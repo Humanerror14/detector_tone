@@ -7,10 +7,13 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from collections import defaultdict, deque
+from threading import Lock
+from time import time
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, HttpUrl
 
@@ -58,6 +61,33 @@ MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))
 ALLOWED_AUDIO_TYPES = {"audio/mpeg", "audio/wav", "audio/x-wav", "audio/mp4", "audio/m4a"}
 ALLOWED_AUDIO_SUFFIXES = {".mp3", ".wav", ".m4a", ".mp4"}
 DEBUG_ENDPOINTS_ENABLED = env_bool("ENABLE_DEBUG_ENDPOINTS")
+
+RATE_LIMIT_WINDOW_SECONDS = int(os.getenv("RATE_LIMIT_WINDOW_SECONDS", "60"))
+RATE_LIMIT_MAX_REQUESTS = int(os.getenv("RATE_LIMIT_MAX_REQUESTS", "30"))
+_rate_limit_lock = Lock()
+_rate_limit_hits: dict[str, deque[float]] = defaultdict(deque)
+
+
+def client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    if request.client and request.client.host:
+        return request.client.host
+    return "unknown"
+
+
+def rate_limit(request: Request) -> None:
+    now = time()
+    key = client_ip(request)
+    with _rate_limit_lock:
+        hits = _rate_limit_hits[key]
+        cutoff = now - RATE_LIMIT_WINDOW_SECONDS
+        while hits and hits[0] < cutoff:
+            hits.popleft()
+        if len(hits) >= RATE_LIMIT_MAX_REQUESTS:
+            raise HTTPException(status_code=429, detail="Too many requests")
+        hits.append(now)
 
 app = FastAPI(title="Tone Music AI Backend")
 app.add_middleware(
@@ -526,7 +556,8 @@ def health() -> dict[str, bool]:
 
 
 @app.post("/analyze/youtube")
-def analyze_youtube(payload: YouTubeAnalyzeRequest) -> dict[str, Any]:
+def analyze_youtube(payload: YouTubeAnalyzeRequest, request: Request) -> dict[str, Any]:
+    rate_limit(request)
     song = payload.song.model_dump(mode="json")
 
     video_id = extract_youtube_video_id(song)
@@ -545,7 +576,8 @@ def analyze_youtube(payload: YouTubeAnalyzeRequest) -> dict[str, Any]:
 
 
 @app.post("/debug/youtube-lyrics")
-def debug_youtube_lyrics(payload: YouTubeAnalyzeRequest) -> dict[str, Any]:
+def debug_youtube_lyrics(payload: YouTubeAnalyzeRequest, request: Request) -> dict[str, Any]:
+    rate_limit(request)
     if not DEBUG_ENDPOINTS_ENABLED:
         raise HTTPException(status_code=404, detail="Not found")
 
@@ -576,7 +608,8 @@ def debug_youtube_lyrics(payload: YouTubeAnalyzeRequest) -> dict[str, Any]:
 
 
 @app.post("/analyze/upload")
-async def analyze_upload(file: UploadFile = File(...)) -> dict[str, Any]:
+async def analyze_upload(request: Request, file: UploadFile = File(...)) -> dict[str, Any]:
+    rate_limit(request)
     suffix = Path(file.filename or "upload.mp3").suffix.lower() or ".mp3"
     if suffix not in ALLOWED_AUDIO_SUFFIXES:
         raise HTTPException(status_code=400, detail="Unsupported audio file extension")
