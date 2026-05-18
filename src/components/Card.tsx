@@ -13,7 +13,7 @@ export const Card = ({ children, className = '', hover = true, onClick }: CardPr
     <motion.div
       onClick={onClick}
       whileHover={hover ? { scale: 1.02, y: -5 } : {}}
-      className={`glass-effect rounded-2xl p-6 ${hover ? 'card-hover cursor-pointer' : ''} ${className}`}
+      className={`glass-effect rounded-2xl p-4 sm:p-6 ${hover ? 'card-hover cursor-pointer' : ''} ${className}`}
     >
       {children}
     </motion.div>

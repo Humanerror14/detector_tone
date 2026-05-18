@@ -8,7 +8,7 @@ export const AnimatedBackground = () => {
 
       {/* Radial gradients */}
       <motion.div
-        className="absolute top-0 left-0 w-96 h-96 bg-primary-purple/30 rounded-full blur-3xl"
+        className="absolute top-0 left-0 w-64 h-64 sm:w-96 sm:h-96 bg-primary-purple/20 sm:bg-primary-purple/30 rounded-full blur-3xl"
         animate={{
           x: [0, 100, 0],
           y: [0, 50, 0],
@@ -22,7 +22,7 @@ export const AnimatedBackground = () => {
       />
 
       <motion.div
-        className="absolute top-1/2 right-0 w-96 h-96 bg-primary-blue/30 rounded-full blur-3xl"
+        className="absolute top-1/2 right-0 w-64 h-64 sm:w-96 sm:h-96 bg-primary-blue/20 sm:bg-primary-blue/30 rounded-full blur-3xl"
         animate={{
           x: [0, -100, 0],
           y: [0, -50, 0],
@@ -36,7 +36,7 @@ export const AnimatedBackground = () => {
       />
 
       <motion.div
-        className="absolute bottom-0 left-1/2 w-96 h-96 bg-primary-pink/30 rounded-full blur-3xl"
+        className="absolute bottom-0 left-1/2 w-64 h-64 sm:w-96 sm:h-96 bg-primary-pink/20 sm:bg-primary-pink/30 rounded-full blur-3xl"
         animate={{
           x: [0, -50, 0],
           y: [0, 100, 0],

@@ -94,7 +94,7 @@ export const ResultsPage = () => {
     <div className="min-h-screen pt-24 pb-12">
       <AnimatedBackground />
 
-      <div className="container mx-auto px-4 max-w-6xl">
+      <div className="container mx-auto px-3 sm:px-4 max-w-6xl">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -126,7 +126,7 @@ export const ResultsPage = () => {
           className="mb-8"
         >
           <Card className="bg-gradient-to-r from-primary-purple/10 to-primary-blue/10">
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
               {song.albumArt ? (
                 <motion.img
                   initial={{ scale: 0 }}
@@ -134,18 +134,18 @@ export const ResultsPage = () => {
                   transition={{ type: 'spring', stiffness: 200 }}
                   src={song.albumArt}
                   alt={song.title}
-                  className="w-32 h-32 rounded-xl object-cover shadow-2xl"
+                  className="w-20 h-20 sm:w-32 sm:h-32 rounded-xl object-cover shadow-2xl shrink-0"
                 />
               ) : (
-                <div className="w-32 h-32 rounded-xl bg-gradient-to-br from-primary-purple to-primary-blue flex items-center justify-center shadow-2xl">
-                  <FaMusic className="text-5xl" />
+                <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-xl bg-gradient-to-br from-primary-purple to-primary-blue flex items-center justify-center shadow-2xl shrink-0">
+                  <FaMusic className="text-3xl sm:text-5xl" />
                 </div>
               )}
 
-              <div className="flex-1">
-                <h1 className="text-4xl font-bold mb-2">{song.title}</h1>
-                <p className="text-xl text-gray-400 mb-3">{song.artist}</p>
-                {song.album && <p className="text-sm text-gray-500">{song.album}</p>}
+              <div className="flex-1 min-w-0 w-full">
+                <h1 className="text-xl sm:text-4xl font-bold mb-2 break-words">{song.title}</h1>
+                <p className="text-sm sm:text-xl text-gray-400 mb-3 break-words">{song.artist}</p>
+                {song.album && <p className="text-xs sm:text-sm text-gray-500 break-words">{song.album}</p>}
                 {song.previewUrl && (
                   <div className="mt-4 max-w-xl">
                     <p className="text-sm text-gray-400 mb-2">Listen to uploaded audio</p>
@@ -167,12 +167,12 @@ export const ResultsPage = () => {
                 )}
               </div>
 
-              <div className="flex gap-3">
-                <Button variant="outline" size="sm">
+              <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto shrink-0">
+                <Button variant="outline" size="sm" className="flex-1 sm:flex-none min-w-[100px]">
                   <FaShare />
                   Share
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="flex-1 sm:flex-none min-w-[100px]">
                   <FaDownload />
                   Export
                 </Button>
@@ -204,20 +204,20 @@ export const ResultsPage = () => {
                 className="inline-block mb-4"
               >
                 <div
-                  className="w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold shadow-2xl"
+                  className="w-16 h-16 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-2xl sm:text-4xl font-bold shadow-2xl"
                   style={{ backgroundColor: primaryColor }}
                 >
                   {Math.round(analysis.confidence * 100)}%
                 </div>
               </motion.div>
 
-              <h2 className="text-3xl font-bold mb-2">
+              <h2 className="text-xl sm:text-3xl font-bold mb-2">
                 Primary Tone: <span style={{ color: primaryColor }}>{getToneLabel(analysis.primaryTone)}</span>
               </h2>
-              <p className="text-gray-400 max-w-2xl mx-auto mb-2">
+              <p className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto mb-2 px-4">
                 {getToneDescription(analysis.primaryTone)}
               </p>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-xs sm:text-sm text-gray-500 mb-4 px-4">
                 Source: {analysis.analysisSource === 'metadata' ? 'Metadata estimate (title/artist)' : 'Audio-based analysis'}
               </p>
 
@@ -245,7 +245,7 @@ export const ResultsPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
         >
           {summaryMetrics.map((metric, index) => (
             <Card key={metric.label} hover={false}>
@@ -255,10 +255,10 @@ export const ResultsPage = () => {
                 transition={{ delay: 0.3 + index * 0.05 }}
                 className="flex items-start justify-between gap-3"
               >
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm text-gray-400 mb-1">{metric.label}</p>
-                  <p className="text-2xl font-bold" style={{ color: primaryColor }}>{metric.value}</p>
-                  <p className="text-xs text-gray-500 capitalize mt-1">{metric.detail}</p>
+                  <p className="text-2xl font-bold break-words" style={{ color: primaryColor }}>{metric.value}</p>
+                  <p className="text-xs text-gray-500 capitalize mt-1 break-words">{metric.detail}</p>
                 </div>
                 <div className="text-xl" style={{ color: primaryColor }}>
                   {metric.icon}
@@ -277,11 +277,11 @@ export const ResultsPage = () => {
             transition={{ delay: 0.3 }}
           >
             <Card>
-              <h3 className="text-2xl font-bold mb-6">Emotion Breakdown</h3>
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Emotion Breakdown</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <RadarChart data={emotionData}>
                   <PolarGrid stroke="#ffffff20" />
-                  <PolarAngleAxis dataKey="emotion" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
+                  <PolarAngleAxis dataKey="emotion" tick={{ fill: '#9CA3AF', fontSize: 11 }} />
                   <Radar
                     name="Emotions"
                     dataKey="value"
@@ -301,11 +301,11 @@ export const ResultsPage = () => {
             transition={{ delay: 0.4 }}
           >
             <Card>
-              <h3 className="text-2xl font-bold mb-6">Tempo Analysis</h3>
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Tempo Analysis</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={tempoData}>
-                  <XAxis dataKey="name" tick={{ fill: '#9CA3AF' }} />
-                  <YAxis tick={{ fill: '#9CA3AF' }} />
+                  <XAxis dataKey="name" tick={{ fill: '#9CA3AF', fontSize: 11 }} />
+                  <YAxis tick={{ fill: '#9CA3AF', fontSize: 11 }} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#1A1A2E',
@@ -331,11 +331,11 @@ export const ResultsPage = () => {
             transition={{ delay: 0.45 }}
           >
             <Card>
-              <h3 className="text-2xl font-bold mb-6">Audio Profile</h3>
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Audio Profile</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={audioProfileData} layout="vertical" margin={{ left: 10, right: 10 }}>
-                  <XAxis type="number" domain={[0, 100]} tick={{ fill: '#9CA3AF' }} />
-                  <YAxis type="category" dataKey="name" tick={{ fill: '#9CA3AF' }} width={90} />
+                <BarChart data={audioProfileData} layout="vertical" margin={{ left: 0, right: 10 }}>
+                  <XAxis type="number" domain={[0, 100]} tick={{ fill: '#9CA3AF', fontSize: 11 }} />
+                  <YAxis type="category" dataKey="name" tick={{ fill: '#9CA3AF', fontSize: 10 }} width={70} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#1A1A2E',
@@ -355,8 +355,8 @@ export const ResultsPage = () => {
             transition={{ delay: 0.5 }}
           >
             <Card>
-              <h3 className="text-2xl font-bold mb-6">Sentiment Signal</h3>
-              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Sentiment Signal</h3>
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
                 <ResponsiveContainer width="100%" height={260}>
                   <RadialBarChart
                     innerRadius="70%"
@@ -376,12 +376,12 @@ export const ResultsPage = () => {
                     />
                   </RadialBarChart>
                 </ResponsiveContainer>
-                <div className="text-center md:text-left w-full md:w-auto">
-                  <p className="text-sm text-gray-400 mb-1">Detected language</p>
-                  <p className="text-2xl font-bold" style={{ color: primaryColor }}>{analysis.lyrics.language}</p>
-                  <p className="text-sm text-gray-400 mt-4 mb-1">Sentiment</p>
-                  <p className="text-xl font-semibold capitalize">{analysis.lyrics.sentiment}</p>
-                  <p className="text-sm text-gray-500 mt-2">Signal strength {sentimentPercent}%</p>
+                <div className="text-center md:text-left w-full md:w-auto px-2">
+                  <p className="text-xs sm:text-sm text-gray-400 mb-1">Detected language</p>
+                  <p className="text-xl sm:text-2xl font-bold" style={{ color: primaryColor }}>{analysis.lyrics.language}</p>
+                  <p className="text-xs sm:text-sm text-gray-400 mt-3 sm:mt-4 mb-1">Sentiment</p>
+                  <p className="text-base sm:text-xl font-semibold capitalize">{analysis.lyrics.sentiment}</p>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-2">Signal strength {sentimentPercent}%</p>
                 </div>
               </div>
             </Card>
@@ -395,12 +395,12 @@ export const ResultsPage = () => {
           transition={{ delay: 0.5 }}
           className="mb-8"
         >
-          <h3 className="text-2xl font-bold mb-4">Detailed Analysis</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <h3 className="text-xl sm:text-2xl font-bold mb-4">Detailed Analysis</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {/* Tempo Details */}
             <Card hover={false}>
-              <h4 className="font-bold text-lg mb-3 text-primary-purple">Tempo</h4>
-              <div className="space-y-2 text-sm">
+              <h4 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 text-primary-purple">Tempo</h4>
+              <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-400">BPM:</span>
                   <span className="font-semibold">{analysis.tempo.bpm}</span>
@@ -422,8 +422,8 @@ export const ResultsPage = () => {
 
             {/* Lyrics Details */}
             <Card hover={false}>
-              <h4 className="font-bold text-lg mb-3 text-primary-blue">Lyrics</h4>
-              <div className="space-y-2 text-sm">
+              <h4 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 text-primary-blue">Lyrics</h4>
+              <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Sentiment:</span>
                   <span className="font-semibold capitalize">{analysis.lyrics.sentiment}</span>
@@ -451,8 +451,8 @@ export const ResultsPage = () => {
 
             {/* Musical Characteristics */}
             <Card hover={false}>
-              <h4 className="font-bold text-lg mb-3 text-primary-pink">Musical</h4>
-              <div className="space-y-2 text-sm">
+              <h4 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 text-primary-pink">Musical</h4>
+              <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Key:</span>
                   <span className="font-semibold">{analysis.musicalCharacteristics.key || 'Not available'}</span>
@@ -481,8 +481,8 @@ export const ResultsPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
           >
-            <h3 className="text-2xl font-bold mb-4">Similar Songs</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <h3 className="text-xl sm:text-2xl font-bold mb-4">Similar Songs</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {similarSongs.slice(0, 6).map((similarSong, index) => (
                 <motion.div
                   key={similarSong.id}
@@ -491,22 +491,22 @@ export const ResultsPage = () => {
                   transition={{ delay: 0.7 + index * 0.05 }}
                 >
                   <Card>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                       {similarSong.albumArt ? (
                         <img
                           src={similarSong.albumArt}
                           alt={similarSong.title}
-                          className="w-16 h-16 rounded-lg object-cover"
+                          className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover"
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary-purple to-primary-blue flex items-center justify-center">
-                          <FaMusic />
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-gradient-to-br from-primary-purple to-primary-blue flex items-center justify-center">
+                          <FaMusic className="text-lg sm:text-xl" />
                         </div>
                       )}
 
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-bold truncate">{similarSong.title}</h4>
-                        <p className="text-sm text-gray-400 truncate">{similarSong.artist}</p>
+                        <h4 className="font-bold text-sm sm:text-base truncate">{similarSong.title}</h4>
+                        <p className="text-xs sm:text-sm text-gray-400 truncate">{similarSong.artist}</p>
                         <p className="text-xs text-primary-purple">
                           {Math.round(similarSong.similarity * 100)}% match
                         </p>

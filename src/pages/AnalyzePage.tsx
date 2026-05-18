@@ -126,7 +126,7 @@ export const AnalyzePage = () => {
     <div className="min-h-screen pt-24 pb-12">
       <AnimatedBackground />
 
-      <div className="container mx-auto px-4 max-w-4xl">
+      <div className="container mx-auto px-3 sm:px-4 max-w-4xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -170,16 +170,16 @@ export const AnalyzePage = () => {
                     className="input-field w-full mb-3"
                   />
                   <label className="block text-sm font-semibold mb-2">Singer / Artist</label>
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <input
                       type="text"
                       value={artistInput}
                       onChange={(e) => setArtistInput(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                       placeholder="e.g. Ed Sheeran"
-                      className="input-field flex-1"
+                      className="input-field flex-1 min-w-0"
                     />
-                    <Button onClick={handleSearch} disabled={isSearching || !titleInput.trim()}>
+                    <Button onClick={handleSearch} disabled={isSearching || !titleInput.trim()} className="w-full sm:w-auto">
                       <FaSearch />
                       Search
                     </Button>
@@ -210,28 +210,28 @@ export const AnalyzePage = () => {
                     transition={{ delay: index * 0.05 }}
                   >
                     <Card onClick={() => handleSongSelect(song)}>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3 sm:gap-4">
                         {song.albumArt ? (
                           <img
                             src={song.albumArt}
                             alt={song.title}
-                            className="w-16 h-16 rounded-lg object-cover"
+                            className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover shrink-0"
                           />
                         ) : (
-                          <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary-purple to-primary-blue flex items-center justify-center">
-                            <FaSearch className="text-2xl" />
+                          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-gradient-to-br from-primary-purple to-primary-blue flex items-center justify-center shrink-0">
+                            <FaSearch className="text-xl sm:text-2xl" />
                           </div>
                         )}
 
-                        <div className="flex-1">
-                          <h4 className="font-bold">{song.title}</h4>
-                          <p className="text-sm text-gray-400">{song.artist}</p>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold truncate">{song.title}</h4>
+                          <p className="text-sm text-gray-400 truncate">{song.artist}</p>
                           {song.album && (
-                            <p className="text-xs text-gray-500">{song.album}</p>
+                            <p className="text-xs text-gray-500 truncate">{song.album}</p>
                           )}
                         </div>
 
-                        <div className="text-primary-purple">→</div>
+                        <div className="text-primary-purple shrink-0">→</div>
                       </div>
                     </Card>
                   </motion.div>
@@ -254,7 +254,7 @@ export const AnalyzePage = () => {
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-xl p-12 text-center transition-all ${
+                className={`border-2 border-dashed rounded-xl p-6 sm:p-12 text-center transition-all ${
                   dragActive
                     ? 'border-primary-purple bg-primary-purple/10'
                     : 'border-gray-600 hover:border-primary-purple/50'
@@ -265,7 +265,7 @@ export const AnalyzePage = () => {
                   transition={{ duration: 2, repeat: Infinity }}
                   className="mb-4"
                 >
-                  <FaUpload className="text-6xl text-primary-purple mx-auto" />
+                  <FaUpload className="text-4xl sm:text-6xl text-primary-purple mx-auto" />
                 </motion.div>
 
                 <h3 className="text-xl font-bold mb-2">

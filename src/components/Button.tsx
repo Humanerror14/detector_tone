@@ -20,7 +20,7 @@ export const Button = ({
   className = '',
   type = 'button',
 }: ButtonProps) => {
-  const baseClasses = 'font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2';
+  const baseClasses = 'font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 min-w-0 text-center';
 
   const variantClasses = {
     primary: 'bg-gradient-to-r from-primary-purple to-primary-blue text-white hover:shadow-lg hover:shadow-primary-purple/50',
@@ -31,7 +31,7 @@ export const Button = ({
   const sizeClasses = {
     sm: 'py-2 px-4 text-sm',
     md: 'py-3 px-6 text-base',
-    lg: 'py-4 px-8 text-lg',
+    lg: 'py-3 px-5 sm:py-4 sm:px-8 text-base sm:text-lg',
   };
 
   return (

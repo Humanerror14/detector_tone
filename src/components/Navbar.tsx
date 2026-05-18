@@ -9,9 +9,9 @@ export const Navbar = () => {
       animate={{ y: 0 }}
       className="fixed top-0 left-0 right-0 z-50 glass-effect border-b border-white/10"
     >
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 group">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+        <div className="flex items-center justify-between gap-3">
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0">
             <motion.div
               whileHover={{ rotate: 360 }}
               transition={{ duration: 0.5 }}
@@ -19,9 +19,9 @@ export const Navbar = () => {
             >
               <FaMusic className="text-2xl text-white" />
             </motion.div>
-            <div>
-              <h1 className="text-2xl font-bold text-gradient">Tone Music</h1>
-              <p className="text-xs text-gray-400">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-gradient truncate">Tone Music</h1>
+              <p className="hidden sm:block text-xs text-gray-400 truncate">
                 Discover Your Music's Mood
               </p>
             </div>

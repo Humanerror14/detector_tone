@@ -41,7 +41,7 @@ export const HomePage = () => {
       <AnimatedBackground />
       <FloatingParticles />
 
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-3 sm:px-4">
         {/* Hero Section */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -74,13 +74,13 @@ export const HomePage = () => {
             </div>
           </motion.div>
 
-          <h1 className="text-5xl md:text-7xl font-bold mb-6">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 break-words">
             <span className="text-gradient">Discover Your Music's</span>
             <br />
             <span className="text-white">Emotional Tone</span>
           </h1>
 
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-8">
+          <p className="text-base sm:text-xl text-gray-400 max-w-2xl mx-auto mb-8">
             Analyze the mood and emotion of any song through advanced tempo and lyrics analysis.
             Get insights into what makes your music truly resonate.
           </p>
@@ -89,13 +89,13 @@ export const HomePage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="flex items-center justify-center gap-4 text-sm text-gray-500"
+            className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-sm text-gray-500"
           >
             <div className="flex items-center gap-2">
               <FaHeadphones className="text-primary-purple" />
               <span>10,000+ Songs Analyzed</span>
             </div>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <div className="flex items-center gap-2">
               <FaMusic className="text-primary-blue" />
               <span>8 Tone Categories</span>
@@ -204,8 +204,8 @@ export const HomePage = () => {
                 transition={{ delay: 0.7 + index * 0.1 }}
               >
                 <Card hover={false} className="h-full">
-                  <div className="flex items-start gap-4">
-                    <div className="text-4xl">{feature.icon}</div>
+                  <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                    <div className="text-3xl sm:text-4xl">{feature.icon}</div>
                     <div>
                       <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
                       <p className="text-gray-400 text-sm">{feature.description}</p>
@@ -232,7 +232,7 @@ export const HomePage = () => {
             <Button
               size="lg"
               onClick={() => navigate('/analyze/search')}
-              className="mx-auto"
+              className="w-full sm:w-auto mx-auto"
             >
               <FaSearch />
               Start Analyzing Now

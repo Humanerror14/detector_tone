@@ -32,7 +32,7 @@ export const Toast = ({ message, type, onClose, duration = 3000 }: ToastProps) =
       initial={{ opacity: 0, y: -50, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -50, scale: 0.9 }}
-      className={`fixed top-20 right-4 z-50 glass-effect border ${bgColors[type]} rounded-xl p-4 shadow-2xl max-w-md`}
+      className={`fixed top-20 left-4 right-4 sm:left-auto sm:right-4 z-50 glass-effect border ${bgColors[type]} rounded-xl p-4 shadow-2xl sm:max-w-md`}
     >
       <div className="flex items-center gap-3">
         <div className="text-xl">{icons[type]}</div>
@@ -60,7 +60,7 @@ export const ToastContainer = ({ toasts, removeToast }: ToastContainerProps) => 
         <motion.div
           key={toast.id}
           style={{ top: `${80 + index * 80}px` }}
-          className="fixed right-4 z-50"
+          className="fixed left-4 right-4 sm:left-auto sm:right-4 z-50"
         >
           <Toast
             message={toast.message}

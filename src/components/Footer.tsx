@@ -5,7 +5,7 @@ export const Footer = () => {
   return (
     <footer className="relative mt-20 border-t border-white/10">
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {/* About */}
           <div>
             <h3 className="text-lg font-bold mb-4 text-gradient">
@@ -59,7 +59,7 @@ export const Footer = () => {
           {/* Social */}
           <div>
             <h3 className="text-lg font-bold mb-4">Connect With Us</h3>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-3 sm:gap-4">
               {[
                 {
                   icon: FaTwitter,
@@ -89,7 +89,7 @@ export const Footer = () => {
         </div>
 
         <div className="mt-8 pt-8 border-t border-white/10 text-center text-sm text-gray-400">
-          <p className="flex items-center justify-center gap-2">
+          <p className="flex flex-wrap items-center justify-center gap-2 text-center">
             Made with <FaHeart className="text-primary-pink" /> by Tone Music
             Team © 2026
           </p>
