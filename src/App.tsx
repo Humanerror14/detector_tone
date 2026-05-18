@@ -1,12 +1,15 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ToastContainer } from '@/components/Toast';
-import { HomePage } from '@/pages/HomePage';
-import { AnalyzePage } from '@/pages/AnalyzePage';
-import { ResultsPage } from '@/pages/ResultsPage';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useStore } from '@/store/useStore';
+
+// Lazy load pages to reduce initial bundle size
+const HomePage = lazy(() => import('@/pages/HomePage').then(m => ({ default: m.HomePage })));
+const AnalyzePage = lazy(() => import('@/pages/AnalyzePage').then(m => ({ default: m.AnalyzePage })));
+const ResultsPage = lazy(() => import('@/pages/ResultsPage').then(m => ({ default: m.ResultsPage })));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -40,11 +43,17 @@ function App() {
         <Navbar />
 
         <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/analyze/:method" element={<AnalyzePage />} />
-            <Route path="/results" element={<ResultsPage />} />
-          </Routes>
+          <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+              <LoadingSpinner size="lg" text="Loading..." />
+            </div>
+          }>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/analyze/:method" element={<AnalyzePage />} />
+              <Route path="/results" element={<ResultsPage />} />
+            </Routes>
+          </Suspense>
         </main>
 
         <Footer />

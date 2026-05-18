@@ -1,18 +1,27 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { FaMusic } from 'react-icons/fa';
+import { shouldReduceMotion } from '@/utils/deviceDetect';
 
 export const FloatingParticles = () => {
   const [particles, setParticles] = useState<Array<{ id: number; x: number; delay: number }>>([]);
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
-    const newParticles = Array.from({ length: 15 }, (_, i) => ({
+    setReduceMotion(shouldReduceMotion());
+    // Reduce particle count on mobile
+    const particleCount = shouldReduceMotion() ? 0 : 15;
+    const newParticles = Array.from({ length: particleCount }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       delay: Math.random() * 5,
     }));
     setParticles(newParticles);
   }, []);
+
+  if (reduceMotion || particles.length === 0) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden">
